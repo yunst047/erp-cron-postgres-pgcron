@@ -1,10 +1,10 @@
 -- =====================================================
--- Job logic เขียนเป็น plpgsql function — pg_cron แค่เรียก
--- SELECT job_xxx() ตาม schedule
--- ทุก function เขียน cron_job_logs และ swallow error ลง log
+-- Job logic lives in plpgsql functions — pg_cron just calls
+-- SELECT job_xxx() on schedule.
+-- Every function writes to cron_job_logs and swallows errors into the log.
 -- =====================================================
 
--- 1) Seed exchange rates (จำลอง external FX feed: random walk ±0.5% จากเรทล่าสุด)
+-- 1) Seed exchange rates (simulates an external FX feed: random walk ±0.5% from the latest rate)
 CREATE OR REPLACE FUNCTION job_update_exchange_rates() RETURNS void
 LANGUAGE plpgsql AS $$
 DECLARE
@@ -28,7 +28,7 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
--- 2) Upsert daily sales summary (7 วันล่าสุด)
+-- 2) Upsert daily sales summary (last 7 days)
 CREATE OR REPLACE FUNCTION job_daily_sales_summary() RETURNS void
 LANGUAGE plpgsql AS $$
 BEGIN
@@ -76,7 +76,7 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
--- 4) Low-stock alerts (skip ถ้ามี alert เปิดค้างอยู่แล้ว)
+-- 4) Low-stock alerts (skip when an open alert already exists)
 CREATE OR REPLACE FUNCTION job_check_low_stock() RETURNS void
 LANGUAGE plpgsql AS $$
 DECLARE
