@@ -1,0 +1,25 @@
+services:
+  postgres:
+    build: .
+    container_name: erp-pg-cron
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_cron
+      -c cron.database_name=erp
+    environment:
+      POSTGRES_USER: erp
+      POSTGRES_PASSWORD: erp
+      POSTGRES_DB: erp
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d:ro
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U erp -d erp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pg_data:
